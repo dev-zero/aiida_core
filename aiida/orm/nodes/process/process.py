@@ -120,14 +120,25 @@ class ProcessNode(Sealable, Node):
                 'could not load process class for entry point {} for CalcJobNode<{}>: {}'.format(
                     self.pk, self.process_type, exception
                 )
-            )
+            ) from exception
         except ValueError:
-            try:
-                import importlib
-                module_name, class_name = self.process_type.rsplit('.', 1)
-                module = importlib.import_module(module_name)
-                process_class = getattr(module, class_name)
-            except (ValueError, ImportError):
+            import importlib
+
+            def str_rsplit_iter(string, sep='.'):
+                components = string.split(sep)
+                for idx in range(1, len(components)):
+                    yield sep.join(components[:-idx]), components[-idx:]
+
+            for module_name, class_names in str_rsplit_iter(self.process_type):
+                try:
+                    module = importlib.import_module(module_name)
+                    process_class = module
+                    for objname in class_names:
+                        process_class = getattr(process_class, objname)
+                    break
+                except (AttributeError, ValueError, ImportError):
+                    pass
+            else:
                 raise ValueError(
                     f'could not load process class CalcJobNode<{self.pk}> given its `process_type`: {self.process_type}'
                 )

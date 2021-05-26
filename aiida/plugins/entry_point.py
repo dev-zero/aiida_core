@@ -134,8 +134,8 @@ def parse_entry_point_string(entry_point_string):
 
     try:
         group, name = entry_point_string.split(ENTRY_POINT_STRING_SEPARATOR)
-    except ValueError:
-        raise ValueError('invalid entry_point_string format')
+    except ValueError as exc:
+        raise ValueError(f'invalid entry_point_string format: {entry_point_string}') from exc
 
     return group, name
 
