@@ -12,6 +12,7 @@
 import logging
 import os
 import tempfile
+from decimal import Decimal
 
 import pytest
 
@@ -395,6 +396,13 @@ class TestNodeAttributesExtras(AiidaTestCase):
         extras = {'extra_one': 'value', 'extra_two': 'value'}
         self.node.set_extra_many(extras)
         self.assertEqual(set(self.node.extras_keys()), set(extras))
+
+    def test_attribute_decimal(self):
+        """Test that the `Node.set_attribute` method supports Decimal."""
+        self.node.set_attribute('a_val', Decimal('3.141'))
+        self.node.store()
+        # ensure the returned node is a float
+        assert self.node.get_attribute('a_val') == 3.141
 
 
 class TestNodeLinks(AiidaTestCase):
